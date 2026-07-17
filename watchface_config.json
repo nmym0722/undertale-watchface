@@ -1,0 +1,287 @@
+{
+  "watchface": {
+    "device": {
+      "model": "Amazfit Bip 6",
+      "screen_type": "OLED",
+      "resolution": {
+        "width": 320,
+        "height": 380
+      }
+    },
+    "background": {
+      "color": "#000000",
+      "aod_optimized": true
+    },
+    "components": [
+      {
+        "id": "time_display",
+        "type": "Group",
+        "description": "Monster Friendフォントによる時刻表示",
+        "x": 30,
+        "y": 20,
+        "width": 260,
+        "height": 60,
+        "children": [
+          {
+            "id": "hour_text",
+            "type": "Text",
+            "x": 0,
+            "y": 0,
+            "width": 110,
+            "height": 60,
+            "font": "Monster Friend",
+            "font_size": 48,
+            "color": "#FFFFFF",
+            "align": "right",
+            "data_source": "TIME_HOUR"
+          },
+          {
+            "id": "heart_separator",
+            "type": "Image",
+            "x": 115,
+            "y": 10,
+            "width": 30,
+            "height": 30,
+            "src": "assets/images/red_soul_separator.png"
+          },
+          {
+            "id": "minute_text",
+            "type": "Text",
+            "x": 150,
+            "y": 0,
+            "width": 110,
+            "height": 60,
+            "font": "Monster Friend",
+            "font_size": 48,
+            "color": "#FFFFFF",
+            "align": "left",
+            "data_source": "TIME_MINUTE"
+          }
+        ]
+      },
+      {
+        "id": "date_asterisk",
+        "type": "Text",
+        "description": "日付アスタリスク。Determination Monoフォント",
+        "x": 77,
+        "y": 88,
+        "width": 15,
+        "height": 40,
+        "font": "Determination Mono",
+        "font_size": 24,
+        "color": "#FFFFFF",
+        "align": "center",
+        "format": "*",
+        "data_source": "TIME_DATE"
+      },
+      {
+        "id": "date_month",
+        "type": "Text",
+        "description": "日付月。Monster Friendフォント",
+        "x": 98,
+        "y": 90,
+        "width": 34,
+        "height": 40,
+        "font": "Monster Friend",
+        "font_size": 24,
+        "color": "#FFFFFF",
+        "align": "center",
+        "format": "%m",
+        "data_source": "TIME_DATE"
+      },
+      {
+        "id": "date_slash",
+        "type": "Text",
+        "description": "日付スラッシュ。Determination Monoフォント",
+        "x": 136,
+        "y": 88,
+        "width": 15,
+        "height": 40,
+        "font": "Determination Mono",
+        "font_size": 24,
+        "color": "#FFFFFF",
+        "align": "center",
+        "format": "/",
+        "data_source": "TIME_DATE"
+      },
+      {
+        "id": "date_day_week",
+        "type": "Text",
+        "description": "日付日と曜日。Monster Friendフォント",
+        "x": 155,
+        "y": 90,
+        "width": 100,
+        "height": 40,
+        "font": "Monster Friend",
+        "font_size": 24,
+        "color": "#FFFFFF",
+        "align": "left",
+        "format": "%d %a",
+        "data_source": "TIME_DATE"
+      },
+      {
+        "id": "character_widget",
+        "type": "DynamicImage",
+        "description": "手首フリック画面オン時にランダムで14キャラクターから自動表示",
+        "x": 80,
+        "y": 140,
+        "width": 160,
+        "height": 160,
+        "align": "center",
+        "align_v": "bottom",
+        "logic": {
+          "trigger": "ON_WAKE_UP",
+          "script": "const charList = ['alphys', 'dog', 'asgore', 'asriel', 'chara', 'flowey', 'monsterkid', 'muffet', 'napstablook', 'papyrus', 'sans', 'temmie', 'toriel', 'undyne']; const randomIndex = Math.floor(Math.random() * charList.length); this.src = `assets/images/characters/${charList[randomIndex]}_active.png`;"
+        },
+        "aod_logic": {
+          "description": "常時表示モード(AOD)では描画素子消灯のためキャラクターを非表示にする",
+          "visible": false
+        }
+      },
+      {
+        "id": "status_container",
+        "type": "Group",
+        "description": "LV（気温）、HPバーと数値（バッテリー）",
+        "x": 25,
+        "y": 310,
+        "width": 270,
+        "height": 20,
+        "children": [
+          {
+            "id": "temp_lv",
+            "type": "Text",
+            "x": 0,
+            "y": 0,
+            "width": 70,
+            "height": 20,
+            "font": "Determination Mono",
+            "font_size": 16,
+            "color": "#FFFFFF",
+            "prefix": "LV ",
+            "data_source": "WEATHER_TEMPERATURE"
+          },
+          {
+            "id": "hp_label",
+            "type": "Image",
+            "x": 75,
+            "y": 4,
+            "width": 24,
+            "height": 12,
+            "src": "assets/images/hp_label.png"
+          },
+          {
+            "id": "battery_gauge",
+            "type": "ProgressBar",
+            "x": 105,
+            "y": 4,
+            "width": 85,
+            "height": 12,
+            "bg_color": "#CC0000",
+            "fg_color": "#FFFF00",
+            "data_source": "SYSTEM_BATTERY_LEVEL"
+          },
+          {
+            "id": "battery_text",
+            "type": "Text",
+            "x": 198,
+            "y": 0,
+            "width": 72,
+            "height": 20,
+            "font": "Trouble Beneath The Dome",
+            "font_size": 14,
+            "color": "#FFFFFF",
+            "align": "right",
+            "format": "%d / 100",
+            "data_source": "SYSTEM_BATTERY_LEVEL"
+          }
+        ]
+      },
+      {
+        "id": "heart_rate_fight",
+        "type": "Group",
+        "description": "FIGHT枠を模した心拍数表示",
+        "x": 25,
+        "y": 337,
+        "width": 110,
+        "height": 28,
+        "children": [
+          {
+            "id": "fight_border",
+            "type": "StrokeRect",
+            "x": 0,
+            "y": 0,
+            "width": 110,
+            "height": 28,
+            "stroke_color": "#FFFF00",
+            "stroke_width": 2
+          },
+          {
+            "id": "heart_icon",
+            "type": "Image",
+            "x": 10,
+            "y": 8,
+            "width": 12,
+            "height": 12,
+            "src": "assets/images/red_soul_icon.png"
+          },
+          {
+            "id": "hr_value",
+            "type": "Text",
+            "x": 27,
+            "y": 0,
+            "width": 78,
+            "height": 28,
+            "font": "Determination Mono",
+            "font_size": 20,
+            "color": "#FFFF00",
+            "align": "center",
+            "data_source": "HEART_RATE"
+          }
+        ]
+      },
+      {
+        "id": "step_count_mercy",
+        "type": "Group",
+        "description": "MERCY枠を模した歩数表示",
+        "x": 185,
+        "y": 337,
+        "width": 110,
+        "height": 28,
+        "children": [
+          {
+            "id": "mercy_border",
+            "type": "StrokeRect",
+            "x": 0,
+            "y": 0,
+            "width": 110,
+            "height": 28,
+            "stroke_color": "#FCA600",
+            "stroke_width": 2
+          },
+          {
+            "id": "footprints_icon",
+            "type": "Image",
+            "x": 10,
+            "y": 8,
+            "width": 12,
+            "height": 12,
+            "src": "assets/images/orange_footprints_icon.png"
+          },
+          {
+            "id": "step_value",
+            "type": "Text",
+            "x": 27,
+            "y": 0,
+            "width": 78,
+            "height": 28,
+            "font": "Determination Mono",
+            "font_size": 20,
+            "color": "#FCA600",
+            "align": "center",
+            "data_source": "STEP_COUNT"
+          }
+        ]
+      }
+    ]
+  }
+}

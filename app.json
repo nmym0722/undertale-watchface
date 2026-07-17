@@ -1,0 +1,64 @@
+{
+  "configVersion": "v2",
+  "app": {
+    "appId": 20240001,
+    "appName": "Undertale Watchface",
+    "appType": "watchface",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "icon.png",
+    "vender": "Daichi",
+    "description": "Undertale themed watchface for Amazfit Bip 6"
+  },
+  "permissions": [
+    "data:user.hd.heart_rate",
+    "data:user.hd.step",
+    "device:weather"
+  ],
+  "runtime": {
+    "apiVersion": {
+      "compatible": "2.0.0",
+      "target": "2.0.0",
+      "minVersion": "2.0.0"
+    }
+  },
+  "targets": {
+    "bip6": {
+      "module": {
+        "watchface": {
+          "path": "watchface/index",
+          "main": 1,
+          "editable": 0,
+          "lockscreen": 0,
+          "hightCost": 0
+        }
+      },
+      "platforms": [
+        {
+          "name": "bip6",
+          "deviceSource": 9765120
+        },
+        {
+          "name": "bip6-v2",
+          "deviceSource": 9765121
+        },
+        {
+          "name": "bip6-v3",
+          "deviceSource": 10158337
+        }
+      ],
+      "designWidth": 390
+    }
+  },
+  "i18n": {
+    "en-US": {
+      "appName": "Undertale Watchface"
+    },
+    "ja-JP": {
+      "appName": "アンダーテール文字盤"
+    }
+  },
+  "defaultLanguage": "en-US"
+}

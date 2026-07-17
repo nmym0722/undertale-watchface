@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Undertale Watchface Simulator - Amazfit Bip 6</title>
+  <style>
+    @font-face {
+      font-family: 'Monster Friend Fore';
+      src: url('assets/fonts/MonsterFriendFore.ttf') format('truetype');
+    }
+    
+    @font-face {
+      font-family: 'Determination Mono';
+      src: url('assets/fonts/DeterminationMono.ttf') format('truetype');
+    }
+
+    :root {
+      --bg-dark: #0a0a0f;
+      --panel-bg: rgba(20, 20, 30, 0.6);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-yellow: #ffff00;
+      --accent-orange: #fca600;
+      --accent-red: #cc0000;
+      --text-main: #e8e8d0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(204, 0, 0, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(252, 166, 0, 0.05) 0%, transparent 40%);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      background: linear-gradient(90deg, #ffffff, #8888aa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #8888aa;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .main-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    /* スマートウォッチ筐体 */
+    .watch-frame {
+      width: 360px;
+      height: 430px;
+      background: #1e1e24;
+      border: 4px solid #33333b;
+      border-radius: 48px;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.8),
+        inset 0 2px 3px rgba(255, 255, 255, 0.2),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.5);
+      padding: 25px 20px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .watch-frame::after {
+      content: '';
+      position: absolute;
+      right: -8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 50px;
+      background: #2a2a30;
+      border: 2px solid #33333b;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* 文字盤画面 (320x380) */
+    .watch-screen {
+      width: 320px;
+      height: 380px;
+      background-color: #000000;
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+      user-select: none;
+      transition: opacity 0.3s ease;
+    }
+
+    /* 常時表示(AOD)モード時の画面状態 */
+    .watch-screen.aod-mode .color-element {
+      display: none !important;
+    }
+    
+    .watch-screen.aod-mode .character-area {
+      visibility: hidden;
+    }
+
+    /* 時刻表示 */
+    .time-container {
+      position: absolute;
+      top: 25px;
+      left: 30px;
+      width: 260px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Monster Friend Fore', monospace;
+      font-size: 48px;
+      color: #ffffff;
+    }
+
+    .hour-text {
+      width: 110px;
+      text-align: right;
+    }
+
+    .minute-text {
+      width: 110px;
+      text-align: left;
+    }
+
+    .heart-separator {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .heart-separator img {
+      width: 24px;
+      height: 24px;
+      image-rendering: pixelated;
+      animation: heartbeat 0.8s infinite steps(2);
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* 日付表示 */
+    .date-wrapper {
+      position: absolute;
+      top: 90px;
+      left: 0;
+      width: 320px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .date-container {
+      position: relative;
+      color: #ffffff;
+      font-family: 'Determination Mono', monospace;
+      font-size: 24px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* キャラクター表示エリア */
+    .character-area {
+      position: absolute;
+      top: 130px;
+      left: 94px;
+      width: 132px;
+      height: 135px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      transition: transform 0.2s ease;
+    }
+
+    .character-area img {
+      width: 132px;
+      height: 135px;
+      image-rendering: pixelated;
+      object-fit: contain;
+      object-position: bottom center;
+    }
+
+    /* ステータス (LV & HP) */
+    .status-container {
+      position: absolute;
+      top: 291px;
+      left: 41px;
+      width: 258px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'Determination Mono', monospace;
+      font-size: 18px;
+      color: #ffffff;
+    }
+
+    .temp-lv {
+      width: 57px;
+      text-align: left;
+    }
+
+    .hp-section {
+      display: flex;
+      align-items: center;
+    }
+
+    .hp-label {
+      color: var(--accent-yellow);
+      font-size: 14px;
+      margin-right: 6px;
+    }
+
+    .battery-gauge-bg {
+      width: 82px;
+      height: 14px;
+      background-color: var(--accent-red);
+      position: relative;
+      margin-right: 8px;
+    }
+
+    .battery-gauge-fg {
+      height: 100%;
+      width: 70%;
+      background-color: var(--accent-yellow);
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .battery-text {
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    /* FIGHT/MERCY枠 */
+    .command-box {
+      position: absolute;
+      bottom: 13px;
+      width: 132px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Determination Mono', monospace;
+      font-size: 21px;
+      border-radius: 1px;
+      background: #000000;
+    }
+
+    .command-box svg {
+      width: 14px;
+      height: 14px;
+      margin-right: 6px;
+    }
+
+    .box-fight {
+      left: 16px;
+      border: 2px solid var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+
+    .box-fight svg {
+      fill: var(--accent-red) !important;
+    }
+
+    .box-mercy {
+      right: 16px;
+      border: 2px solid var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    /* 🛠️ コントロールパネル */
+    .control-panel {
+      flex: 1;
+      min-width: 320px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 30px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #8888aa;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #aaaaaa;
+      margin-bottom: 8px;
+    }
+
+    .control-label span:last-child {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: #2a2a35;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255,255,255,0.5);
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .btn-primary:hover {
+      background: #dddddd;
+      box-shadow: 0 0 15px rgba(255,255,255,0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .btn-active {
+      background: rgba(255, 255, 255, 0.2) !important;
+      border-color: #ffffff !important;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Undertale Watchface Simulator</h1>
+  <div class="subtitle">Amazfit Bip 6 文字盤デバッグ・シミュレーター</div>
+
+  <div class="main-container">
+    
+    <!-- ⌚ スマートウォッチ本体 -->
+    <div class="watch-frame">
+      <div class="watch-screen" id="screen">
+        
+        <!-- 時刻 -->
+        <div class="time-container">
+          <div class="hour-text" id="hour">10</div>
+          <div class="heart-separator">
+            <img src="assets/red_soul_separator.png" alt="heart">
+          </div>
+          <div class="minute-text" id="minute">10</div>
+        </div>
+
+        <!-- 日付・曜日 -->
+        <div class="date-wrapper">
+          <div class="date-container" id="date">
+            * 07/10 FRI
+          </div>
+        </div>
+
+        <!-- キャラクターエリア -->
+        <div class="character-area" id="char-area">
+          <!-- JSで動的にSVGを描画 -->
+        </div>
+
+        <!-- ステータス (LV/HP) -->
+        <div class="status-container">
+          <div class="temp-lv" id="lv-disp">LV 19</div>
+          <div class="hp-section color-element">
+            <span class="hp-label">HP</span>
+            <div class="battery-gauge-bg">
+              <div class="battery-gauge-fg" id="hp-bar"></div>
+            </div>
+          </div>
+          <div class="battery-text" id="hp-text">70 / 100</div>
+        </div>
+
+        <!-- FIGHT枠 (心拍数) -->
+        <div class="command-box box-fight color-element">
+          <!-- ハート -->
+          <svg viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#CC0000"/>
+          </svg>
+          <span id="hr-disp">75</span>
+        </div>
+
+        <!-- MERCY枠 (歩数) -->
+        <div class="command-box box-mercy color-element">
+          <!-- 足跡 -->
+          <svg viewBox="0 0 24 24">
+            <path d="M9 2c-.6 0-1.1.2-1.5.6L4.6 5.5C4.2 5.9 4 6.4 4 7v3.5c0 1.4 1.1 2.5 2.5 2.5.8 0 1.5-.4 1.9-1l1.1-1.6V20c0 1.1.9 2 2 2s2-.9 2-2v-4.5c0-.8-.7-1.5-1.5-1.5s-1.5.7-1.5 1.5V18c0 .6-.4 1-1 1s-1-.4-1-1v-8.4l2.1 3.1c.4.6 1.1 1 1.9 1 1.4 0 2.5-1.1 2.5-2.5V7.7l-2.1-3.1C10.1 2.2 9.6 2 9 2zm6 5c-.6 0-1.1.2-1.5.6l-2.9 2.9c-.4.4-.6.9-.6 1.5V15.5c0 1.4 1.1 2.5 2.5 2.5.8 0 1.5-.4 1.9-1l1.1-1.6V20c0 1.1.9 2 2 2s2-.9 2-2v-4.5c0-.8-.7-1.5-1.5-1.5s-1.5.7-1.5 1.5V18c0 .6-.4 1-1 1s-1-.4-1-1v-8.4l2.1 3.1c.4.6 1.1 1 1.9 1 1.4 0 2.5-1.1 2.5-2.5v-2.8l-2.1-3.1c-.4-.4-.9-.6-1.5-.6z" fill="#FCA600"/>
+          </svg>
+          <span id="steps-disp">8000</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 🛠️ コントロールパネル -->
+    <div class="control-panel">
+      <div class="panel-title">シミュレータ制御</div>
+
+      <!-- 解像度切り替え -->
+      <div class="control-group">
+        <div class="control-label">
+          <span>解像度モード</span>
+          <span id="val-resolution">390×450 (Bip 6)</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-secondary" id="btn-res-320" onclick="switchResolution(320, 380)">320×380 (旧)</button>
+          <button class="btn-primary btn-active" id="btn-res-390" onclick="switchResolution(390, 450)">390×450 (Bip 6)</button>
+        </div>
+      </div>
+      
+      <!-- 画面点灯 / AOD -->
+      <div class="control-group">
+        <label class="control-label">画面状態 (手首検知テスト)</label>
+        <div class="btn-group">
+          <button class="btn-primary btn-active" id="btn-wake" onclick="setScreenState(true)">画面点灯 (Wake)</button>
+          <button class="btn-secondary" id="btn-aod" onclick="setScreenState(false)">常時表示 (AOD)</button>
+        </div>
+      </div>
+
+      <!-- バッテリー (HP) -->
+      <div class="control-group">
+        <div class="control-label">
+          <span>バッテリー残量 (HP)</span>
+          <span id="val-battery">70%</span>
+        </div>
+        <input type="range" id="slider-battery" min="0" max="100" value="70" oninput="updateBattery(this.value)">
+      </div>
+
+      <!-- 心拍数 -->
+      <div class="control-group">
+        <div class="control-label">
+          <span>心拍数 (FIGHT)</span>
+          <span id="val-hr">75 bpm</span>
+        </div>
+        <input type="range" id="slider-hr" min="40" max="180" value="75" oninput="updateHeartRate(this.value)">
+      </div>
+
+      <!-- 歩数 -->
+      <div class="control-group">
+        <div class="control-label">
+          <span>歩数 (MERCY)</span>
+          <span id="val-steps">8000 歩</span>
+        </div>
+        <input type="range" id="slider-steps" min="0" max="20000" step="100" value="8000" oninput="updateSteps(this.value)">
+      </div>
+
+      <!-- 気温 (LV) -->
+      <div class="control-group">
+        <div class="control-label">
+          <span>気温 (LV)</span>
+          <span id="val-temp">19 ℃</span>
+        </div>
+        <input type="range" id="slider-temp" min="-10" max="45" value="19" oninput="updateTemp(this.value)">
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // アセットガイド記載の14キャラクター
+    const characters = [
+      'alphys', 'dog', 'asgore', 'asriel', 'chara', 
+      'flowey', 'monsterkid', 'muffet', 'napstablook', 
+      'papyrus', 'sans', 'temmie', 'toriel', 'undyne'
+    ];
+
+    let charAnimInterval = null;
+
+    // 現在の解像度を保持
+    let currentResW = 390, currentResH = 450;
+
+    // 初期化関数
+    function init() {
+      // 時計の更新ループ
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // 初期キャラクターのセット
+      changeRandomCharacter();
+
+      // 初期解像度を390×450に設定
+      switchResolution(390, 450);
+    }
+
+    // クロックの更新 (日付と時刻)
+    function updateClock() {
+      const now = new Date();
+      const hour = now.getHours().toString().padStart(2, '0');
+      const minute = now.getMinutes().toString().padStart(2, '0');
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const day = now.getDate().toString().padStart(2, '0');
+      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      const dayStr = days[now.getDay()];
+
+      document.getElementById('hour').innerText = hour;
+      document.getElementById('minute').innerText = minute;
+      
+      document.getElementById('date').innerText = `* ${month}/${day} ${dayStr}`;
+    }
+
+    // 画面状態の切り替え
+    function setScreenState(isWake) {
+      const screen = document.getElementById('screen');
+      const btnWake = document.getElementById('btn-wake');
+      const btnAod = document.getElementById('btn-aod');
+
+      if (isWake) {
+        screen.classList.remove('aod-mode');
+        btnWake.classList.add('btn-active');
+        btnAod.classList.remove('btn-active');
+        // 画面オンでキャラクターがランダムチェンジ
+        changeRandomCharacter();
+      } else {
+        screen.classList.add('aod-mode');
+        btnAod.classList.add('btn-active');
+        btnWake.classList.remove('btn-active');
+        // AODモード移行時はアニメーションタイマーをクリアして黒画像に
+        if (charAnimInterval) {
+          clearInterval(charAnimInterval);
+          charAnimInterval = null;
+        }
+        const charArea = document.getElementById('char-area');
+        charArea.innerHTML = `<img src="assets/images/characters/black_pixel.png">`;
+      }
+    }
+
+    // 画像サイズ更新用ヘルパー
+    function updateCharImgSize(charImg) {
+      if (!charImg) return;
+      const sx = currentResW / 320;
+      const sy = currentResH / 380;
+      charImg.style.width = Math.round(132 * sx) + 'px';
+      charImg.style.height = Math.round(135 * sy) + 'px';
+    }
+
+    // ランダムキャラクターの切り替え
+    function changeRandomCharacter() {
+      const charArea = document.getElementById('char-area');
+      
+      // 既存のアニメーションをクリア
+      if (charAnimInterval) {
+        clearInterval(charAnimInterval);
+        charAnimInterval = null;
+      }
+
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      const chosenChar = characters[randomIndex];
+      
+      if (chosenChar === 'undyne') {
+        const frames = [0, 1, 2, 1];
+        let frameIdx = 0;
+        
+        const setFrame = (idx) => {
+          charArea.innerHTML = `<img src="assets/images/characters/undyne_${frames[idx]}.png?t=${new Date().getTime()}">`;
+          updateCharImgSize(charArea.querySelector('img'));
+        };
+        
+        // 初期フレーム設定
+        setFrame(frameIdx);
+        
+        // 240ms間隔でパラパラアニメーション
+        charAnimInterval = setInterval(() => {
+          frameIdx = (frameIdx + 1) % frames.length;
+          setFrame(frameIdx);
+        }, 240);
+      } else {
+        charArea.innerHTML = `<img src="assets/images/characters/${chosenChar}_active.png?t=${new Date().getTime()}">`;
+        updateCharImgSize(charArea.querySelector('img'));
+      }
+      
+      // スケールアニメーションのトリガー
+      charArea.style.transform = 'scale(0.8)';
+      setTimeout(() => {
+        charArea.style.transform = 'scale(1)';
+      }, 50);
+    }
+
+    // スライダー更新関数群
+    function updateBattery(value) {
+      document.getElementById('val-battery').innerText = `${value}%`;
+      document.getElementById('hp-text').innerText = `${value} / 100`;
+      
+      const hpBar = document.getElementById('hp-bar');
+      hpBar.style.width = `${value}%`;
+      hpBar.style.backgroundColor = 'var(--accent-yellow)';
+    }
+
+    function updateHeartRate(value) {
+      document.getElementById('val-hr').innerText = `${value} bpm`;
+      document.getElementById('hr-disp').innerText = value;
+    }
+
+    function updateSteps(value) {
+      document.getElementById('val-steps').innerText = `${value} 歩`;
+      document.getElementById('steps-disp').innerText = value;
+    }
+
+    // 気温 (LV)
+    function updateTemp(value) {
+      document.getElementById('val-temp').innerText = `${value} ℃`;
+      document.getElementById('lv-disp').innerText = `LV ${value}`;
+    }
+
+    // ─────────────────────────────────────────────────
+    // 解像度切り替え
+    // ─────────────────────────────────────────────────
+    function switchResolution(w, h) {
+      currentResW = w;
+      currentResH = h;
+
+      const btn320 = document.getElementById('btn-res-320');
+      const btn390 = document.getElementById('btn-res-390');
+      const valRes = document.getElementById('val-resolution');
+
+      if (w === 320) {
+        btn320.className = 'btn-primary btn-active';
+        btn390.className = 'btn-secondary';
+        valRes.innerText = '320×380 (旧)';
+      } else {
+        btn320.className = 'btn-secondary';
+        btn390.className = 'btn-primary btn-active';
+        valRes.innerText = '390×450 (Bip 6)';
+      }
+
+      applyResolution(w, h);
+    }
+
+    // 座標・フォントサイズを解像度に合わせて動的更新
+    function applyResolution(targetW, targetH) {
+      const BASE_W = 320, BASE_H = 380;
+      const sx = targetW / BASE_W;
+      const sy = targetH / BASE_H;
+      const r = n => Math.round(n);
+
+      // ─ スクリーン & フレームサイズ ─
+      const screen = document.getElementById('screen');
+      screen.style.width = targetW + 'px';
+      screen.style.height = targetH + 'px';
+      screen.style.borderRadius = r(28 * sx) + 'px';
+
+      const frame = document.querySelector('.watch-frame');
+      frame.style.width  = (targetW + 40) + 'px';
+      frame.style.height = (targetH + 50) + 'px';
+      frame.style.borderRadius = r(48 * sx) + 'px';
+
+      // ─ 時刻コンテナ ─
+      const tc = document.querySelector('.time-container');
+      tc.style.top      = r(17 * sy) + 'px';
+      tc.style.left     = r(20 * sx) + 'px';
+      tc.style.width    = r(280 * sx) + 'px';
+      tc.style.height   = r(76 * sy) + 'px';
+      tc.style.fontSize = r(61 * sx) + 'px';
+
+      document.querySelector('.hour-text').style.width   = r(123 * sx) + 'px';
+      document.querySelector('.minute-text').style.width = r(123 * sx) + 'px';
+
+      // ─ ハートセパレーター ─
+      const hImg = document.querySelector('.heart-separator img');
+      hImg.style.width  = r(24 * sx) + 'px';
+      hImg.style.height = r(24 * sy) + 'px';
+
+      // ─ 日付ラッパー ─
+      const dw = document.querySelector('.date-wrapper');
+      dw.style.top   = r(89 * sy) + 'px';
+      dw.style.width = targetW + 'px';
+      document.getElementById('date').style.fontSize = r(28 * sx) + 'px';
+
+      // ─ キャラクターエリア ─
+      const ca = document.getElementById('char-area');
+      const charW = r(132 * sx);
+      const charH = r(135 * sy);
+      ca.style.top    = r(139 * sy) + 'px';
+      ca.style.left   = r(94 * sx) + 'px';
+      ca.style.width  = charW + 'px';
+      ca.style.height = charH + 'px';
+      const charImg = ca.querySelector('img');
+      if (charImg) {
+        charImg.style.width  = charW + 'px';
+        charImg.style.height = charH + 'px';
+      }
+
+      // ─ ステータスコンテナ ─
+      const sc = document.querySelector('.status-container');
+      sc.style.top      = r(283 * sy) + 'px';
+      sc.style.left     = r(45 * sx) + 'px';
+      sc.style.width    = r(230 * sx) + 'px';
+      sc.style.fontSize = r(18 * sx) + 'px';
+      document.querySelector('.temp-lv').style.width = r(57 * sx) + 'px';
+
+      // ─ HPゲージ ─
+      const gbg = document.querySelector('.battery-gauge-bg');
+      gbg.style.width  = r(74 * sx) + 'px';
+      gbg.style.height = r(14 * sy) + 'px';
+
+      // ─ FIGHT / MERCY コマンドボックス ─
+      document.querySelectorAll('.command-box').forEach(box => {
+        box.style.bottom    = r(21 * sy) + 'px';
+        box.style.width     = r(123 * sx) + 'px';
+        box.style.height    = r(34 * sy) + 'px';
+        box.style.fontSize  = r(21 * sx) + 'px';
+      });
+      document.querySelector('.box-fight').style.left  = r(29 * sx) + 'px';
+      document.querySelector('.box-mercy').style.right = r(29 * sx) + 'px';
+
+      // ─ コマンドボックス内SVGアイコン ─
+      document.querySelectorAll('.command-box svg').forEach(svg => {
+        svg.style.width  = r(14 * sx) + 'px';
+        svg.style.height = r(14 * sy) + 'px';
+      });
+    }
+
+    // アプリ起動
+    window.onload = init;
+  </script>
+</body>
+</html>
