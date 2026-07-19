@@ -224,25 +224,6 @@ WatchFace({
 
   // センサーリスナーの設定と描画更新
   registerSensors() {
-    // ① 時間・日付の更新 (Date & timer)
-    const updateTime = () => {
-      const now = new Date()
-      const hour = now.getHours().toString().padStart(2, '0')
-      const minute = now.getMinutes().toString().padStart(2, '0')
-      const month = (now.getMonth() + 1).toString().padStart(2, '0')
-      const day = now.getDate().toString().padStart(2, '0')
-
-      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-      const dayStr = days[now.getDay()] || ''
-
-      this.widgets.hourText.setProperty(hmUI.prop.TEXT, hour)
-      this.widgets.minuteText.setProperty(hmUI.prop.TEXT, minute)
-      this.widgets.dateText.setProperty(hmUI.prop.TEXT, `* ${month}/${day} ${dayStr}`)
-    }
-    updateTime() // 初回実行
-    // 1秒ごとに更新するタイマーを登録
-    this.timeTimer = createTimer(1000, 1000, updateTime)
-
     // ② バッテリー（HPバー）の更新
     const updateBattery = () => {
       const batterySensor = this.batterySensor
@@ -264,6 +245,31 @@ WatchFace({
       })
       this.widgets.batteryText.setProperty(hmUI.prop.TEXT, `${level}/100`)
     }
+
+    // ① 時間・日付の更新 (Date & timer)
+    const updateTime = () => {
+      const now = new Date()
+      const hour = now.getHours().toString().padStart(2, '0')
+      const minute = now.getMinutes().toString().padStart(2, '0')
+      const month = (now.getMonth() + 1).toString().padStart(2, '0')
+      const day = now.getDate().toString().padStart(2, '0')
+
+      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+      const dayStr = days[now.getDay()] || ''
+
+      this.widgets.hourText.setProperty(hmUI.prop.TEXT, hour)
+      this.widgets.minuteText.setProperty(hmUI.prop.TEXT, minute)
+      this.widgets.dateText.setProperty(hmUI.prop.TEXT, `* ${month}/${day} ${dayStr}`)
+
+      // 充電時などに onChange が発火しない問題の対策として、10秒ごとにバッテリー情報を同期する
+      if (now.getSeconds() % 10 === 0) {
+        updateBattery()
+      }
+    }
+    updateTime() // 初回実行
+    // 1秒ごとに更新するタイマーを登録
+    this.timeTimer = createTimer(1000, 1000, updateTime)
+
     if (this.batterySensor) {
       this.batterySensor.onChange(updateBattery)
       updateBattery()
